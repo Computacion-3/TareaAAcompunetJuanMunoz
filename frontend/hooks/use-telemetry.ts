@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { getNextMockReading } from '@/mocks/telemetry.mock';
+import { useCallback, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import { TelemetryReading, TelemetryTopic } from '@/types/telemetry';
 
 export interface UseTelemetryOptions {
@@ -39,8 +39,6 @@ export function useTelemetry(
     tickMs = 1500,
   } = options;
 
-  const mockCursorRef = useRef<number>(0);
-
   const [topic, setTopic] = useState<TelemetryTopic>(initialTopic);
   const [running, setRunning] = useState(false);
   const [points, setPoints] = useState<TelemetryReading[]>([]);
@@ -53,7 +51,6 @@ export function useTelemetry(
   );
 
   const subscribe = useCallback((nextTopic: TelemetryTopic) => {
-    mockCursorRef.current = 0;
     setPoints([]);
     setTopic(nextTopic);
   }, []);
@@ -64,7 +61,6 @@ export function useTelemetry(
 
   const reset = useCallback(() => {
     setRunning(false);
-    mockCursorRef.current = 0;
     setPoints([]);
   }, []);
 
@@ -72,16 +68,22 @@ export function useTelemetry(
   useEffect(() => {
     if (!running) return;
 
-    const timer = setInterval(() => {
-      const nextReading = getNextMockReading(topic, mockCursorRef.current);
-      mockCursorRef.current += 1;
-      pushReading(nextReading);
-    }, tickMs);
+    const socket = io(
+      process.env.NEXT_PUBLIC_WS_URL ?? 'http://localhost:4000',
+    );
+
+    socket.on('connect', () => {
+      socket.emit('telemetry:subscribe', { topic });
+    });
+
+    socket.on('telemetry:reading', (reading: TelemetryReading) => {
+      pushReading(reading);
+    });
 
     return () => {
-      clearInterval(timer);
+      socket.disconnect();
     };
-  }, [running, topic, tickMs, pushReading]);
+  }, [running, topic, pushReading]);
 
   return {
     topic,
