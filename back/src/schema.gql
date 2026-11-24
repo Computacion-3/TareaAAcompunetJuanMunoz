@@ -1,0 +1,40 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""Datos necesarios para crear una nueva rutina"""
+input CreateRoutineInput {
+  """Descripción opcional (mínimo 10 caracteres si se envía)"""
+  description: String
+
+  """Nombre de la rutina (mínimo 3 caracteres)"""
+  name: String!
+}
+
+type Mutation {
+  """Crea una nueva rutina en el sistema"""
+  createRoutine(input: CreateRoutineInput!): Routine!
+}
+
+type Query {
+  """Busca una rutina por su identificador numérico"""
+  routine(id: Int!): Routine
+
+  """Obtiene el listado de todas las rutinas registradas"""
+  routines: [Routine!]!
+}
+
+"""Rutina de entrenamiento registrada en el sistema"""
+type Routine {
+  """Fecha de creación en formato ISO 8601"""
+  createdAt: String!
+
+  """Descripción opcional de la rutina"""
+  description: String
+
+  """Identificador único de la rutina"""
+  id: Int!
+
+  """Nombre de la rutina"""
+  name: String!
+}

@@ -30,10 +30,18 @@ export default defineConfig({
             dependencies: ['setup'],
         },
     ],
-    webServer: {
-        command: 'npm run build && npx next start -p 3100',
-        url: 'http://localhost:3100',
-        reuseExistingServer: false,
-        timeout: 120_000
-    },
+    webServer: [
+        {
+            command: 'npm --prefix back run build && npm --prefix back run start:prod',
+            url: 'http://localhost:4000',
+            reuseExistingServer: !process.env.CI,
+            timeout: 120_000,
+        },
+        {
+            command: 'npm run build && npx next start -p 3100',
+            url: 'http://localhost:3100',
+            reuseExistingServer: false,
+            timeout: 120_000,
+        },
+    ],
 });
